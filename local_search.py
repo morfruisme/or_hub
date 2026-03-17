@@ -76,8 +76,12 @@ class IteratedLocalSearch:
                 best_fitness, best_sol = fitness, sol
             current_sol = perturbator(current_sol)
             current_fitness = fitness_function(current_sol)
+            print(current_sol)
         return best_fitness, best_sol
 
+
+
+    
 
 class Network:
 
@@ -189,8 +193,11 @@ class Network:
     def is_hub(self, i: int):
         return self.mat[i][i]
 
+    def hub_number(self):
+        return sum([self.is_hub(i) for i in range(self.n)])
+
     def copy(self):
-        Network([l.copy() for l in self.mat])
+        return Network([l.copy() for l in self.mat])
 
     def fitness(self):
         fixed_cost = sum([self.is_hub(i) * self.f[i] for i in range(self.n)])
@@ -209,7 +216,7 @@ class Network:
 # relink spoke to adjacent hub of its hub
 def relink_adj(n: Network) -> Iterable[Network]:
     for i in range(n.n):
-        if not network.is_hub(i):
+        if not n.is_hub(i):
             hub = [n[i, j] for j in range(n.n)].index(True)
             for j in range(n.n):
                 if j != hub and n.is_hub(j) and n[hub, j]:
@@ -232,10 +239,10 @@ def rebase_adj(n: Network) -> Iterable[Network]:
 
 # perturbators
 
-def perturbator(tour: Network) -> Network:
-    pass
 
-
+def perturbator(n: Network) -> Network:
+    return Network.random(n.hub_number())
+    
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(
@@ -259,6 +266,15 @@ if __name__ == "__main__":
     #                                   lambda tour: tour.fitness(distances)))
 
     Network.load_from_json("InputDataHubSmallInstance.json")
-    network = Network.random(4)
 
-    print(network)
+    # network = Network.random(4)
+    # print(network)
+    # print(Network.random(network.hub_number()))
+    # for n in perturbator(network):
+        # print(n)
+
+    print(IteratedLocalSearch().solve(Network.random(4),
+                                   relink_adj,
+                                   perturbator,
+                                   lambda n: n.fitness()))
+
